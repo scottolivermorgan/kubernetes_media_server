@@ -181,3 +181,54 @@ You should see something similar to:
 - Updated for variations from https://medium.com/@stevenhoang/step-by-step-guide-installing-k3s-on-a-raspberry-pi-4-cluster-8c12243800b9
 - https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
 - https://github.com/derailed/k9s/releases
+
+
+# NFS setup
+on Node with drives in:
+- mount external HD:
+  - Create a Directory for the External Hard Drive:
+  `sudo mkdir /media/HD_1`
+  set permissions:
+  `sudo chmod -R 777 /media/HD_1`
+  find name & mmount
+  `lsblk`
+  find name & mount drive
+  `sudo mount /dev/sda1 /media/HD_1`
+  persist mount on boot:
+  `sudo nano /etc/fstab`
+  add the following line:
+  `/dev/sda1  /media/HD_1  auto  defaults,nofail  0  0`
+
+- install dependencies:
+  `sudo apt-get update`
+  `sudo apt-get install nfs-kernel-server`
+
+- Edit the NFS exports file
+  `sudo nano /etc/exports`
+  `/media/HD_1 *(rw,sync,no_subtree_check,no_root_squash)`
+
+- Apply and Restart NFS
+  `sudo exportfs -ra`
+  `sudo systemctl restart nfs-kernel-server`
+
+- Check its running:
+  `sudo systemctl status nfs-kernel-server`
+
+On every other connected node which requires access:
+- install dependencies:
+  `sudo apt install nfs-common`
+
+- create mount point:
+  `sudo mkdir /media/HD_1`
+
+- mount the share:
+  `sudo mount 192.168.1.86:/media/HD_1 /media/HD_1`
+
+- test mounted by adding file on the server and check its there on the node
+
+then persit client mount:
+  `sudo nano /etc/fstab`
+  add the following line:
+`192.168.1.86:/media/HD_1 /media/HD_1 nfs defaults 0 0`
+
+reboot all nodes and check.
