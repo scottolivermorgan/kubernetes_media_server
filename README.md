@@ -232,3 +232,11 @@ then persit client mount:
 `192.168.1.86:/media/HD_1 /media/HD_1 nfs defaults 0 0`
 
 reboot all nodes and check.
+
+
+# Helm
+Install helm on laptop
+`curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash`
+
+initialise chart
+`helm create mychart`
