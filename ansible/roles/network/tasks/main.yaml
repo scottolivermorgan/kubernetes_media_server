@@ -1,0 +1,16 @@
+- name: Get current IP config
+  become: true
+  command: nmcli -g ipv4.addresses connection show "{{ nmcli_connection_name }}"
+  register: current_ip
+  changed_when: false
+
+
+- name: Set fixed IP address (only if different)
+  become: true
+  command: >
+    nmcli connection modify "{{ nmcli_connection_name }}"
+    ipv4.addresses "{{ ip_address }}/{{ netmask }}"
+    ipv4.gateway "{{ gateway }}"
+    ipv4.dns "{{ dns }}"
+    ipv4.method manual
+  when: current_ip.stdout != (ip_address | string) + '/' + (netmask | string)

@@ -1,0 +1,27 @@
+- name: Set up networking
+  hosts: all
+  roles:
+    - network
+
+
+- name: Disable swap and configure cgroups
+  hosts: all
+  roles:
+    - base
+
+
+- name: Install and initialize k3s master
+  hosts: masters
+  roles:
+    - master
+
+
+- name: Join worker nodes
+  hosts: workers
+  roles:
+    - worker
+
+#- name: Configure access to kubeconfig locally
+#  hosts: localhost
+#  roles:
+#    - kubectl_access

@@ -1,0 +1,5 @@
+[defaults]
+inventory = inventory/inventory.yaml
+remote_user = youruser
+host_key_checking = False
+ansible_become_password=yourpassword

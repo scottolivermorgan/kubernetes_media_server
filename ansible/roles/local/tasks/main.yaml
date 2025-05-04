@@ -1,0 +1,12 @@
+- name: Copy kubeconfig to control machine
+  delegate_to: localhost
+  become: false
+  shell: ssh pi@{{ hostvars['pi-master.local'].k3s_server_ip }} "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
+
+- name: Replace localhost with master IP
+  delegate_to: localhost
+  become: false
+  replace:
+    path: ~/.kube/config
+    regexp: 'https://127\.0\.0\.1:6443'
+    replace: 'https://{{ hostvars["pi-master.local"].k3s_server_ip }}:6443'

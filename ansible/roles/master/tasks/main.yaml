@@ -1,0 +1,37 @@
+#- name: Install k3s on master
+#  become: yes
+#  shell: |
+#    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server \
+#    --disable=traefik \
+#    --flannel-backend=host-gw \
+#    --tls-san={{ ip_address }} \
+#    --bind-address={{ ip_address }} \
+#    --advertise-address={{ ip_address }} \
+#    --node-ip={{ ip_address }} \
+#    --cluster-init" sh -s -
+
+- name: Install k3s on master if not already installed
+  become: yes
+  shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server \
+    --disable=traefik \
+    --flannel-backend=host-gw \
+    --tls-san={{ ip_address }} \
+    --bind-address={{ ip_address }} \
+    --advertise-address={{ ip_address }} \
+    --node-ip={{ ip_address }} \
+    --cluster-init" sh -s -
+  args:
+    creates: /usr/local/bin/k3s
+
+
+- name: Get node token
+  become: yes
+  command: cat /var/lib/rancher/k3s/server/node-token
+  register: node_token
+  run_once: true
+
+- name: Set token fact for workers
+  set_fact:
+    k3s_node_token: "{{ node_token.stdout }}"
+  run_once: true

@@ -1,0 +1,11 @@
+all:
+  children:
+    masters:
+      hosts:
+        pi-master.local:
+    workers:
+      hosts:
+        pi-worker-1.local:
+    storage_nodes:
+      hosts:
+        pi-worker-1.local:

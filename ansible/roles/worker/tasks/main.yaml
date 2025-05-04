@@ -1,0 +1,13 @@
+#- name: Join worker node to cluster
+#  become: yes
+#  shell: |
+#    curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['pi-master.local'].k3s_server_ip }}:6443 \
+#    K3S_TOKEN="{{ hostvars['pi-master.local'].k3s_node_token }}" sh -
+
+- name: Join worker node to k3s cluster if not already joined
+  become: yes
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['pi-master.local'].ip_address }}:6443 \
+    K3S_TOKEN="{{ hostvars['pi-master.local'].k3s_node_token }}" sh -
+  args:
+    creates: /usr/local/bin/k3s-agent

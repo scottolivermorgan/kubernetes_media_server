@@ -1,0 +1,58 @@
+- name: Update apt-get repo and cache
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+
+- name: Upgrade all apt packages
+  become: true
+  ansible.builtin.apt:
+    upgrade: dist
+
+
+- name: Check if any swap is active
+  become: yes
+  command: swapon --summary
+  register: swap_status
+  changed_when: false
+  failed_when: false
+
+
+- name: Disable swap immediately
+  become: yes
+  command: swapoff -a
+  when: swap_status.stdout != ""
+
+
+- name: Disable swap permanently
+  become: yes
+  lineinfile:
+    path: /etc/dphys-swapfile
+    regexp: '^CONF_SWAPSIZE='
+    line: 'CONF_SWAPSIZE=0'
+  notify: Reboot system
+
+
+- name: Read current cmdline
+  command: cat /boot/firmware/cmdline.txt
+  register: cmdline_content
+  changed_when: false
+
+
+- name: Add cgroup parameters if not already present
+  become: yes
+  lineinfile:
+    path: /boot/firmware/cmdline.txt
+    regexp: '^.*$'
+    line: "{{ cmdline_content.stdout }} cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory"
+  when: "'cgroup_enable=cpuset' not in cmdline_content.stdout"
+  notify: Reboot system
+
+
+- name: Install curl
+  become: yes
+  apt:
+    name: curl
+    state: present
+    update_cache: yes
