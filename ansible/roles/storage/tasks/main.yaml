@@ -1,0 +1,47 @@
+- name: Install lvm2 package
+  become: true
+  package:
+    name: lvm2
+    state: present
+
+
+- name: Ensure required variables are defined
+  assert:
+    that:
+      - volumes is defined
+      - volume_group is defined
+      - logical_volumes is defined
+      - mount_point is defined
+
+
+- name: Ensure the mount directory is created & fully open to all users
+  ansible.builtin.file:
+    path: /media/HD_1
+    state: directory
+    mode: '0777'
+
+
+# For each volume in the configuration, find the corresponding device using a custom shell function
+#- name: Run find_device_by_label for primary volumes
+#  shell: |
+#    find_device_by_label() {
+#      label=$1
+#      device=$(lsblk -o NAME,LABEL | grep "$label" | awk '{print "/dev/" $1}' | sed 's/└─//g')
+#      echo $device
+#    }
+#    find_device_by_label {{ item }}
+#  loop: "{{ volumes['volumes'] }}"
+#  register: device_output
+
+
+- name: Find devices by label
+  shell: |
+    find_device_by_label() {
+      label=$1
+      device=$(lsblk -o NAME,LABEL | grep "$label" | awk '{print "/dev/" $1}' | sed 's/└─//g')
+      echo $device
+    }
+    find_device_by_label {{ item }}
+  register: device_output
+  changed_when: false
+  loop: "{{ volumes }}"
