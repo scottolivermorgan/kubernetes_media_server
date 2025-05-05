@@ -21,19 +21,6 @@
     mode: '0777'
 
 
-# For each volume in the configuration, find the corresponding device using a custom shell function
-#- name: Run find_device_by_label for primary volumes
-#  shell: |
-#    find_device_by_label() {
-#      label=$1
-#      device=$(lsblk -o NAME,LABEL | grep "$label" | awk '{print "/dev/" $1}' | sed 's/└─//g')
-#      echo $device
-#    }
-#    find_device_by_label {{ item }}
-#  loop: "{{ volumes['volumes'] }}"
-#  register: device_output
-
-
 - name: Find devices by label
   shell: |
     find_device_by_label() {
@@ -45,3 +32,31 @@
   register: device_output
   changed_when: false
   loop: "{{ volumes }}"
+
+
+# Initialize an empty list to store volume-device pairs
+- name: Pair volumes with their corresponding devices
+  set_fact:
+    paired_volumes_devices: []
+    #backup_paired_volumes_devices: []
+
+
+# Combine the volumes with their corresponding device paths into a list of dictionaries
+- name: Add volume-device pairs
+  set_fact:
+    paired_volumes_devices: "{{ paired_volumes_devices + [{'volume': item.0, 'device': item.1.stdout}] }}"
+  loop: "{{ volumes | zip(device_output.results) }}"
+  when: item.1.stdout is defined
+
+
+# Check for existing physical volumes on the system to determine if pvcreate is needed
+- name: Check existing physical volumes
+  shell: sudo pvs --noheadings
+  register: pvs_output
+  changed_when: false
+
+
+# Count the number of physical volumes on the system
+- name: Count the physical volumes on the system
+  set_fact:
+    existing_pvs_count: "{{ pvs_output.stdout | regex_findall('/dev/') | length }}"
