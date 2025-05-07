@@ -60,3 +60,41 @@
 - name: Count the physical volumes on the system
   set_fact:
     existing_pvs_count: "{{ pvs_output.stdout | regex_findall('/dev/') | length }}"
+
+
+# Run pvcreate on each device if needed
+- name: Run pvcreate on each primary device if needed
+  shell: |
+    echo "y" | sudo pvcreate {{ item.stdout }}
+  loop: "{{ device_output.results }}"
+  when: item.stdout is defined and existing_pvs_count | int < (volumes | length) | int
+  register: pvcreate_output
+
+
+# Gather the device paths from the pvcreate output ##################################
+- name: Gather all device paths from pvcreate output
+  set_fact:
+    device_paths: "{{ pvcreate_output.results | map(attribute='stdout') | map('regex_search', '/dev/[a-zA-Z0-9]+') | list }}"
+  when: pvcreate_output is not skipped and pvcreate_output.results | length > 0
+
+
+# Check for existing volume groups to determine if vgcreate is needed
+- name: Check existing volume groups
+  shell: sudo vgs --noheadings
+  register: vgs_output
+  changed_when: false
+
+
+# Create a volume group (VG) with the devices just created or found
+- name: Create a volume group on the physical volumes
+  shell: "sudo vgcreate {{ volume_group }} {{ device_paths | join(' ') }}"
+  when: device_paths is defined and device_paths | length > 0 and vgs_output.stdout == "" and pvcreate_output is not skipped
+  register: vgcreate_output
+
+
+# Create a logical volume (LV) using the entire space of the volume group
+- name: Create logical volume
+  shell: "sudo lvcreate -n {{ logical_volumes[0]['name'] }} -l {{ logical_volumes[0]['size'] }} {{ volume_group }}"
+  when: vgcreate_output is not skipped
+  register: logical_volume_output
+  changed_when: logical_volume_output.rc == 0
