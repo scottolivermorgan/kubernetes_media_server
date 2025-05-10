@@ -1,100 +1,16 @@
-- name: Install lvm2 package
-  become: true
-  package:
-    name: lvm2
-    state: present
-
-
-- name: Ensure required variables are defined
-  assert:
-    that:
-      - volumes is defined
-      - volume_group is defined
-      - logical_volumes is defined
-      - mount_point is defined
-
-
-- name: Ensure the mount directory is created & fully open to all users
-  ansible.builtin.file:
-    path: /media/HD_1
-    state: directory
-    mode: '0777'
-
-
-- name: Find devices by label
-  shell: |
-    find_device_by_label() {
-      label=$1
-      device=$(lsblk -o NAME,LABEL | grep "$label" | awk '{print "/dev/" $1}' | sed 's/└─//g')
-      echo $device
-    }
-    find_device_by_label {{ item }}
-  register: device_output
-  changed_when: false
-  loop: "{{ volumes }}"
-
-
-# Initialize an empty list to store volume-device pairs
-- name: Pair volumes with their corresponding devices
+- name: Combine primary and backup LVM configs
   set_fact:
-    paired_volumes_devices: []
-    #backup_paired_volumes_devices: []
+    all_lvm_configs: >-
+      {{
+        [{'volumes': volumes, 'volume_group': volume_group,
+          'logical_volumes': logical_volumes, 'mount_point': mount_point}]
+        + ([{'volumes': backup_volumes, 'volume_group': backup_volume_group,
+             'logical_volumes': backup_logical_volumes, 'mount_point': backup_mount_point}]
+           if backup_volumes is defined else [])
+      }}
 
-
-# Combine the volumes with their corresponding device paths into a list of dictionaries
-- name: Add volume-device pairs
-  set_fact:
-    paired_volumes_devices: "{{ paired_volumes_devices + [{'volume': item.0, 'device': item.1.stdout}] }}"
-  loop: "{{ volumes | zip(device_output.results) }}"
-  when: item.1.stdout is defined
-
-
-# Check for existing physical volumes on the system to determine if pvcreate is needed
-- name: Check existing physical volumes
-  shell: sudo pvs --noheadings
-  register: pvs_output
-  changed_when: false
-
-
-# Count the number of physical volumes on the system
-- name: Count the physical volumes on the system
-  set_fact:
-    existing_pvs_count: "{{ pvs_output.stdout | regex_findall('/dev/') | length }}"
-
-
-# Run pvcreate on each device if needed
-- name: Run pvcreate on each primary device if needed
-  shell: |
-    echo "y" | sudo pvcreate {{ item.stdout }}
-  loop: "{{ device_output.results }}"
-  when: item.stdout is defined and existing_pvs_count | int < (volumes | length) | int
-  register: pvcreate_output
-
-
-# Gather the device paths from the pvcreate output ##################################
-- name: Gather all device paths from pvcreate output
-  set_fact:
-    device_paths: "{{ pvcreate_output.results | map(attribute='stdout') | map('regex_search', '/dev/[a-zA-Z0-9]+') | list }}"
-  when: pvcreate_output is not skipped and pvcreate_output.results | length > 0
-
-
-# Check for existing volume groups to determine if vgcreate is needed
-- name: Check existing volume groups
-  shell: sudo vgs --noheadings
-  register: vgs_output
-  changed_when: false
-
-
-# Create a volume group (VG) with the devices just created or found
-- name: Create a volume group on the physical volumes
-  shell: "sudo vgcreate {{ volume_group }} {{ device_paths | join(' ') }}"
-  when: device_paths is defined and device_paths | length > 0 and vgs_output.stdout == "" and pvcreate_output is not skipped
-  register: vgcreate_output
-
-
-# Create a logical volume (LV) using the entire space of the volume group
-- name: Create logical volume
-  shell: "sudo lvcreate -n {{ logical_volumes[0]['name'] }} -l {{ logical_volumes[0]['size'] }} {{ volume_group }}"
-  when: vgcreate_output is not skipped
-  register: logical_volume_output
-  changed_when: logical_volume_output.rc == 0
+- name: Set up all defined LVMs
+  include_tasks: lvm_setup.yaml
+  loop: "{{ all_lvm_configs }}"
+  loop_control:
+    loop_var: lvm_config

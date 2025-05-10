@@ -1,0 +1,54 @@
+# TODO: this playbook isn't idempotent, if pv's are created and it fails for any reason
+# later then subsequent tasks will fail/skip improperly
+- name: Ensure the mount directory exists
+  ansible.builtin.file:
+    path: "{{ lvm_config.mount_point | default('/media/' + lvm_config.volumes[0]) }}"
+    state: directory
+    mode: '0777'
+
+- name: Find devices by label
+  shell: |
+    find_device_by_label() {
+      label=$1
+      device=$(lsblk -o NAME,LABEL | grep "$label" | awk '{print "/dev/" $1}' | sed 's/└─//g')
+      echo $device
+    }
+    find_device_by_label {{ item }}
+  register: device_output
+  changed_when: false
+  loop: "{{ lvm_config.volumes }}"
+  loop_control:
+    loop_var: item
+
+- name: Initialize empty volume-device list
+  set_fact:
+    paired_volumes_devices: []
+
+- name: Add volume-device pairs
+  set_fact:
+    paired_volumes_devices: "{{ paired_volumes_devices + [{'volume': item.0, 'device': item.1.stdout}] }}"
+  loop: "{{ lvm_config.volumes | zip(device_output.results) }}"
+  when: item.1.stdout is defined
+
+- name: Create physical volumes
+  shell: |
+    if ! sudo pvs {{ item.stdout }} &>/dev/null; then
+      echo "y" | sudo pvcreate {{ item.stdout }}
+    fi
+  loop: "{{ device_output.results }}"
+  when: item.stdout is defined
+
+- name: Create volume group
+  shell: "sudo vgcreate {{ lvm_config.volume_group }} {{ paired_volumes_devices | map(attribute='device') | join(' ') }}"
+  register: vgcreate_output
+  failed_when: vgcreate_output.rc != 0 and 'already exists' not in vgcreate_output.stderr
+  ignore_errors: true
+
+- name: Create logical volume
+  shell: |
+    sudo lvcreate -n {{ lvm_config.logical_volumes[0].name }} \
+                  -l {{ lvm_config.logical_volumes[0].size }} \
+                  {{ lvm_config.volume_group }}
+  register: lvcreate_output
+  changed_when: lvcreate_output.rc == 0
+  ignore_errors: true

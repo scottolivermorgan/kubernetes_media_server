@@ -1,0 +1,5 @@
+# Default values for backup LVM setup if not defined in host_vars
+backup_volumes: []
+backup_volume_group: ""
+backup_logical_volumes: []
+backup_mount_point: ""
