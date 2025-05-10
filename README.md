@@ -240,3 +240,22 @@ Install helm on laptop
 
 initialise chart
 `helm create mychart`
+
+
+
+# Ansible
+- Write SD cards as before
+__host name must match the names in host_vars/ i.e pi-master & pi-worker-1__
+`nmap -sn 192.168.1.0/24`
+edit user in ansible.cfg to match users your made on SD cards.
+
+turn on pis and run again, note new host addresses
+update ip addresses in pi-master.local.yaml & pi-worker.local.yaml
+
+to run playbook:
+`cd ansible`
+`ansible-playbook main.yaml`
+
+check by ssh into master node and run:
+`kubectl get nodes`
+
