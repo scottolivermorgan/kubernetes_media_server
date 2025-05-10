@@ -1,18 +1,32 @@
-- name: Ensure the mount directory exists
-  ansible.builtin.file:
-    path: "{{ mount_point }}"
-    state: directory
-    mode: '0777'
-
-
-- name: Create directory structure
+- name: Install nfs-kernel-server package
   become: true
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0777'
-  loop:
-    - /media/{{ mount_point }}/Media
-    - /media/{{ mount_point }}/Media/Metadata
-    - /media/{{ backup_mount_point }}
+  package:
+    name: nfs-kernel-server
+    state: present
 
+
+- name: Ensure NFS exports file contains the correct entry
+  lineinfile:
+    path: /etc/exports
+    line: "{{ mount_point }} *(rw,sync,no_subtree_check,no_root_squash)"
+    create: yes
+    state: present
+    #validate: '/usr/sbin/exportfs -ra'
+
+
+- name: Apply the NFS export changes
+  command: exportfs -ra
+
+
+- name: Restart the NFS server service
+  systemd:
+    name: nfs-kernel-server
+    state: restarted
+
+
+- name: Check the status of the NFS server
+  systemd:
+    name: nfs-kernel-server
+    state: started
+    enabled: yes
+  register: nfs_status
