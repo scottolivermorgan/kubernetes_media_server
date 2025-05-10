@@ -12,7 +12,6 @@
     state: directory
     mode: '0777'
   loop:
-    - /media/{{ mount_point }}/Media
-    - /media/{{ mount_point }}/Media/Metadata
-    - /media/{{ backup_mount_point }}
-
+    - "{{ mount_point }}/Media"
+    - "{{ mount_point }}/Media/Metadata"
+    - "{{ backup_mount_point }}"

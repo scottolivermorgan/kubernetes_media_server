@@ -9,8 +9,25 @@
            if backup_volumes is defined else [])
       }}
 
+
 - name: Set up all defined LVMs
   include_tasks: lvm_setup.yaml
   loop: "{{ all_lvm_configs }}"
   loop_control:
     loop_var: lvm_config
+
+# Only do this for main drive not backup
+- name: Add logical volume to fstab and mount
+  become: true
+  mount:
+    name: "{{ mount_point }}"
+    src: "/dev/{{ volume_group }}/{{ logical_volumes[0]['name'] }}"
+    fstype: ext4
+    opts: defaults
+    state: mounted
+    dump: 0
+    passno: 2
+
+
+- name: Set up expected directory structue for services
+  include_tasks: expected_dirs.yaml

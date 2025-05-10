@@ -93,3 +93,16 @@
   register: lvcreate_output
   changed_when: lvcreate_output.rc == 0
   ignore_errors: true
+
+# Check if logical volume formatting would happen and ask for confirmation
+- name: Ask for confirmation to format logical volume
+  pause:
+    prompt: "Are you sure you want to format /dev/{{ lvm_config.volume_group }}/{{ lvm_config.logical_volumes[0]['name'] }} with ext4? (y/n)"
+  register: user_confirmation
+  when: lvcreate_output is not skipped
+
+
+- name: Format logical volume as ext4
+  shell: "sudo mkfs.ext4 -F /dev/{{ lvm_config.volume_group }}/{{ lvm_config.logical_volumes[0]['name'] }}"
+  register: logical_volume_format_output
+  when: lvcreate_output is not skipped and user_confirmation.user_input == 'y'
