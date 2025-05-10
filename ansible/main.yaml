@@ -22,7 +22,7 @@
 #    - worker
 
 
-- name: Join worker nodes
+- name: Setup & configure server storage
   hosts: storage_nodes
   become: true
   roles:

@@ -11,7 +11,6 @@
     line: "{{ mount_point }} *(rw,sync,no_subtree_check,no_root_squash)"
     create: yes
     state: present
-    #validate: '/usr/sbin/exportfs -ra'
 
 
 - name: Apply the NFS export changes
