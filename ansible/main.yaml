@@ -22,11 +22,18 @@
 #    - worker
 
 
-- name: Setup & configure server storage
-  hosts: storage_nodes
+#- name: Setup & configure server storage
+#  hosts: storage_nodes
+#  become: true
+#  roles:
+#    - storage
+
+
+- name: Setup & configure client NFS storage
+  hosts: storage_client_nodes
   become: true
   roles:
-    - storage
+    - storage_client
 
 
 #- name: Configure access to kubeconfig locally

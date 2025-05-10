@@ -9,3 +9,6 @@ all:
     storage_nodes:
       hosts:
         pi-worker-1.local:
+    storage_client_nodes:
+      hosts:
+        pi-master.local:
