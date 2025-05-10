@@ -6,6 +6,28 @@
     state: directory
     mode: '0777'
 
+# TODO this works correctly but dont like that this is marked as failed on first run and skipped
+- name: Check if logical volume exists
+  command: "sudo lvdisplay /dev/{{ lvm_config.volume_group }}/{{ item.name }}"
+  register: lv_check
+  ignore_errors: true
+  loop: "{{ lvm_config.logical_volumes }}"
+  loop_control:
+    loop_var: item
+
+# Step 2: Set fact to determine whether we need to proceed or not
+- name: Set fact to skip further tasks if logical volumes exist
+  set_fact:
+    lv_exists: "{{ lv_check.results | selectattr('rc', 'eq', 0) | list | length > 0 }}"
+  when: lv_check is defined
+
+# Step 3: Skip further tasks if logical volumes already exist
+- name: Skip LVM setup if logical volumes exist
+  debug:
+    msg: "Logical volumes already exist. Skipping further tasks."
+  when: lv_exists
+
+
 - name: Find devices by label
   shell: |
     find_device_by_label() {
@@ -14,6 +36,7 @@
       echo $device
     }
     find_device_by_label {{ item }}
+  when: not lv_exists
   register: device_output
   changed_when: false
   loop: "{{ lvm_config.volumes }}"
@@ -23,12 +46,13 @@
 - name: Initialize empty volume-device list
   set_fact:
     paired_volumes_devices: []
+  when: not lv_exists
 
 - name: Add volume-device pairs
   set_fact:
     paired_volumes_devices: "{{ paired_volumes_devices + [{'volume': item.0, 'device': item.1.stdout}] }}"
   loop: "{{ lvm_config.volumes | zip(device_output.results) }}"
-  when: item.1.stdout is defined
+  when: item.1.stdout is defined and not lv_exists
 
 - name: Create physical volumes
   shell: |
@@ -36,10 +60,11 @@
       echo "y" | sudo pvcreate {{ item.stdout }}
     fi
   loop: "{{ device_output.results }}"
-  when: item.stdout is defined
+  when: item.stdout is defined and not lv_exists
 
 - name: Create volume group
   shell: "sudo vgcreate {{ lvm_config.volume_group }} {{ paired_volumes_devices | map(attribute='device') | join(' ') }}"
+  when: not lv_exists
   register: vgcreate_output
   failed_when: vgcreate_output.rc != 0 and 'already exists' not in vgcreate_output.stderr
   ignore_errors: true
@@ -49,6 +74,7 @@
     sudo lvcreate -n {{ lvm_config.logical_volumes[0].name }} \
                   -l {{ lvm_config.logical_volumes[0].size }} \
                   {{ lvm_config.volume_group }}
+  when: not lv_exists
   register: lvcreate_output
   changed_when: lvcreate_output.rc == 0
   ignore_errors: true
