@@ -1,0 +1,5 @@
+# TODO make dynamic
+- name: Set node roles
+  become: yes
+  shell: |
+    kubectl label nodes pi-worker-1 node-role.kubernetes.io/worker=

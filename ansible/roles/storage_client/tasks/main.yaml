@@ -3,3 +3,30 @@
   package:
     name: nfs-common
     state: present
+
+
+- name: Ensure the mount directory exists
+  ansible.builtin.file:
+    path: "{{ hostvars['pi-worker-1.local']['mount_point'] }}"
+    state: directory
+    mode: '0777'
+
+
+- name: Temporarily mount NFS share
+  become: true
+  ansible.posix.mount:
+    path: /media/HD_1
+    src: "{{ hostvars['pi-worker-1.local']['ip_address'] }}:/media/HD_1"
+    fstype: nfs
+    opts: defaults
+    state: mounted
+
+
+- name: Ensure NFS mount is persisted in /etc/fstab
+  become: true
+  ansible.posix.mount:
+    path: /media/HD_1
+    src: "{{ hostvars['pi-worker-1.local']['ip_address'] }}:/media/HD_1"
+    fstype: nfs
+    opts: defaults
+    state: present
