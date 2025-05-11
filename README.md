@@ -252,10 +252,12 @@ edit user in ansible.cfg to match users your made on SD cards.
 turn on pis and run again, note new host addresses
 update ip addresses in pi-master.local.yaml & pi-worker.local.yaml
 
+__assumes__ Hard drives named according to schema & that they are plugged into pi-worker-1
+
 to run playbook:
 `cd ansible`
 `ansible-playbook main.yaml`
 
 check by ssh into master node and run:
-`kubectl get nodes`
+`sudo kubectl get nodes`
 
