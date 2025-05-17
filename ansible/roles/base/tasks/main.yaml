@@ -56,3 +56,17 @@
     name: curl
     state: present
     update_cache: yes
+
+
+- name: Install packages
+  become: true
+  ansible.builtin.apt:
+    pkg:
+      - git
+      - pip
+
+
+# TODO do this properly
+- name: Install python kubernetes module
+  become: true
+  command: pip install kubernetes --break-system-packages

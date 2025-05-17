@@ -1,46 +1,53 @@
-- name: Set up networking
-  hosts: all
-  roles:
-    - network
+#- name: Set up networking
+#  hosts: all
+#  roles:
+#    - network
+#
+#
+#- name: Disable swap and configure cgroups
+#  hosts: all
+#  roles:
+#    - base
 
 
-- name: Disable swap and configure cgroups
-  hosts: all
-  roles:
-    - base
+#- name: Install and initialize k3s master
+#  hosts: masters
+#  roles:
+#    - master
+#
+#
+#- name: Join worker nodes
+#  hosts: workers
+#  roles:
+#    - worker
+#
+#
+#- name: Setup & configure server storage
+#  hosts: storage_nodes
+#  become: true
+#  roles:
+#    - storage
+#
+#
+#- name: Setup & configure client NFS storage
+#  hosts: storage_client_nodes
+#  become: true
+#  roles:
+#    - storage_client
+#
+#
+#- name: Helm config
+#  hosts: masters
+#  become: true
+#  roles:
+#    - helm
 
-
-- name: Install and initialize k3s master
+- name: Deploy Jellyfin media server
   hosts: masters
-  roles:
-    - master
-
-
-- name: Join worker nodes
-  hosts: workers
-  roles:
-    - worker
-
-
-- name: Setup & configure server storage
-  hosts: storage_nodes
   become: true
   roles:
-    - storage
+    - jellyfin
 
-
-- name: Setup & configure client NFS storage
-  hosts: storage_client_nodes
-  become: true
-  roles:
-    - storage_client
-
-
-- name: Helm config
-  hosts: masters
-  become: true
-  roles:
-    - helm
 
 #- name: Configure access to kubeconfig locally
 #  hosts: localhost
