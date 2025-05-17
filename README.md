@@ -124,7 +124,7 @@ In Your WSL terminal:
 	
 - Copy kubeconfig to the dir we just created
 	
-    `ssh scott@192.168.1.85 "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config`
+    `ssh scott@192.168.1.10 "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config`
 	
 - Check & Update the IP inside the file if required
 
@@ -132,7 +132,7 @@ In Your WSL terminal:
 	
     find the line `server: https://127.0.0.1:6443`
 	
-    change it to `server: https://192.168.1.85:6443` (if it isn't already)
+    change it to `server: https://192.168.1.10:6443` (if it isn't already)
 	
 - Install kubectl **You must use a kubectl version that is within one minor version difference of your cluster. For example, a v1.33 client can communicate with v1.32, v1.33, and v1.34 control planes**
 
@@ -261,3 +261,13 @@ to run playbook:
 check by ssh into master node and run:
 `sudo kubectl get nodes`
 
+
+TODO: config python modules on host via requirements ie kubernetes
+with apt update ect
+`sudo apt install python3-pip -y`
+`pip3 install kubernetes openshift`
+
+TODO also setup localhost for kubeconfig to point at right things
+jellyfin at http://192.168.1.10:31182/
+check with, shh into master :
+sudo kubectl get svc -n media
