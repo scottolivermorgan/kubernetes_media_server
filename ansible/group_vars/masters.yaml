@@ -3,3 +3,9 @@ jellyfin_values:
     type: NodePort
     port: 8096
     nodePort: 30596
+
+komga_values:
+  service:
+    type: NodePort
+    port: 25600
+    nodePort: 3100
