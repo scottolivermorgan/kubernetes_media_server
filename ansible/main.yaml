@@ -48,11 +48,17 @@
 #  roles:
 #    - jellyfin
 
-- name: Deploy Komga media server
+#- name: Deploy Komga media server
+#  hosts: masters
+#  become: true
+#  roles:
+#    - komga
+
+- name: Deploy Audiobookshelf media server
   hosts: masters
   become: true
   roles:
-    - komga
+    - audiobookshelf
 
 
 #- name: Configure access to kubeconfig locally

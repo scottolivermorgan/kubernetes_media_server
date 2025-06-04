@@ -271,3 +271,10 @@ TODO also setup localhost for kubeconfig to point at right things
 jellyfin at http://192.168.1.10:31182/
 check with, shh into master :
 sudo kubectl get svc -n media
+
+
+service ports:
+`kubectl get svc --all-namespaces`
+
+updating helm chart and deploying example (must be in helm dir):
+`helm upgrade audiobookshelf . -n media -f values.yaml`

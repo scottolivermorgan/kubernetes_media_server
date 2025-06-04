@@ -9,3 +9,9 @@ komga_values:
     type: NodePort
     port: 25600
     nodePort: 3100
+
+audiobookshelf_values:
+  service:
+    type: NodePort
+    port: 13378
+    nodePort: 3200

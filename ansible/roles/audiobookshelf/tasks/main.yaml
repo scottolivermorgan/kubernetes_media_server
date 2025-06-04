@@ -1,0 +1,19 @@
+- name: Create namespace for Audiobookshelf
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: audiobookshelf
+    state: present
+  delegate_to: localhost
+  become: false
+
+- name: Install Audiobookshelf using local Helm chart
+  kubernetes.core.helm:
+    name: audiobookshelf
+    chart_ref: "{{ playbook_dir }}/helm_charts/audiobookshelf"
+    release_namespace: media
+    create_namespace: false
+    values: "{{ audiobookshelf_values }}"
+    state: present
+  delegate_to: localhost
+  become: false
