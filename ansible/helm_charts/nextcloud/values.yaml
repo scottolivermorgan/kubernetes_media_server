@@ -7,11 +7,9 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: nginx
-  # This sets the pull policy for images.
+  repository: nextcloud
+  tag: 29.0.2
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
@@ -52,9 +50,11 @@ securityContext: {}
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
+  type: NodePort
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   port: 80
+  targetPort: 80
+  nodePort: 34000
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -89,22 +89,36 @@ resources: {}
 livenessProbe:
   httpGet:
     path: /
-    port: http
+    port: 80
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 10
+
 readinessProbe:
   httpGet:
     path: /
-    port: http
+    port: 80
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 10
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:
   enabled: false
   minReplicas: 1
-  maxReplicas: 100
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
-volumes: []
+volumes:
+  - name: nextcloud
+    hostPath:
+      path: /var/www/html
+  - name: media-hd-1
+    hostPath:
+      path: /media/HD_1
+
 # - name: foo
 #   secret:
 #     secretName: mysecret
