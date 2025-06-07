@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      containers:
+        - name: radarr
+          image: linuxserver/radarr:5.18.4.9674-ls259
+          env:
+            - name: PUID
+              value: "{{ .Values.puid | default $.Values.global.puid }}"
+            - name: PGID
+              value: "{{ .Values.pgid | default $.Values.global.pgid }}"
+            - name: TZ
+              value: "{{ .Values.timezone | default $.Values.global.timezone }}"
+          ports:
+            - containerPort: {{ .Values.port }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: movies
+              mountPath: /movies
+            - name: downloads
+              mountPath: /downloads
+          livenessProbe: {{- toYaml $.Values.global.livenessProbe | nindent 12 }}
+          readinessProbe: {{- toYaml $.Values.global.readinessProbe | nindent 12 }}
+      volumes:
+        - name: config
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Metadata/radarr
+        - name: movies
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Movies
+        - name: downloads
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Downloads/completed

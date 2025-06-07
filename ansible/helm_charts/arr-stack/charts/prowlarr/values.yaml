@@ -1,0 +1,21 @@
+port: 9696
+
+service:
+  type: NodePort
+  port: 9696
+  targetPort: 9696
+  nodePort: 30800
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 9696
+  initialDelaySeconds: 120
+  timeoutSeconds: 30
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 9696
+  initialDelaySeconds: 120
+  timeoutSeconds: 30

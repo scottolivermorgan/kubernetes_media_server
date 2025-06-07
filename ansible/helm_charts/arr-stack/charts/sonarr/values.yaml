@@ -1,0 +1,22 @@
+port: 8989
+
+service:
+  type: NodePort
+  port: 8989
+  targetPort: 8989
+  nodePort: 30788
+
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 8989
+  initialDelaySeconds: 120
+  timeoutSeconds: 60
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 8989
+  initialDelaySeconds: 120
+  timeoutSeconds: 60

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prowlarr
+  template:
+    metadata:
+      labels:
+        app: prowlarr
+    spec:
+      containers:
+        - name: prowlarr
+          image: linuxserver/prowlarr:develop-1.31.1.4959-ls216
+          env:
+            - name: PUID
+              value: "{{ .Values.puid | default $.Values.global.puid }}"
+            - name: PGID
+              value: "{{ .Values.pgid | default $.Values.global.pgid }}"
+            - name: TZ
+              value: "{{ .Values.timezone | default $.Values.global.timezone }}"
+          ports:
+            - containerPort: {{ .Values.port }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+          livenessProbe: {{- toYaml $.Values.global.livenessProbe | nindent 12 }}
+          readinessProbe: {{- toYaml $.Values.global.readinessProbe | nindent 12 }}
+      volumes:
+        - name: config
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Metadata/prowlarr
+        - name: downloads
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Downloads/watch

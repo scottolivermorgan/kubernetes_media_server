@@ -1,0 +1,36 @@
+webuiPort: 9080
+torrentPort: 6881
+
+service:
+  type: NodePort
+
+  webui:
+    port: 9080
+    targetPort: 9080
+    nodePort: 30980  # optional, can be omitted for auto
+
+  torrent:
+    port: 6881
+    targetPort: 6881
+    nodePort: 30681  # optional
+    protocol: UDP
+
+  torrentTcp:
+    port: 6881
+    targetPort: 6881
+    nodePort: 30682
+    protocol: TCP
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 9080
+  initialDelaySeconds: 120
+  timeoutSeconds: 60
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 9080
+  initialDelaySeconds: 120
+  timeoutSeconds: 60

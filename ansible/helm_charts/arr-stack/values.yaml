@@ -1,0 +1,5 @@
+global:
+  mountPoint: sda1
+  timezone: Europe/Amsterdam
+  puid: 1000
+  pgid: 1000

@@ -1,0 +1,21 @@
+port: 6767
+
+service:
+  type: NodePort
+  port: 6767
+  targetPort: 6767
+  nodePort: 30700
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 6767
+  initialDelaySeconds: 120
+  timeoutSeconds: 30
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 6767
+  initialDelaySeconds: 120
+  timeoutSeconds: 30

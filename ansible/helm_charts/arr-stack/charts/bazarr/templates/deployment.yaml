@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bazarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bazarr
+  template:
+    metadata:
+      labels:
+        app: bazarr
+    spec:
+      containers:
+        - name: prowlarr
+          image: lscr.io/linuxserver/bazarr:v1.5.1-ls290
+          env:
+            - name: PUID
+              value: "{{ .Values.puid | default $.Values.global.puid }}"
+            - name: PGID
+              value: "{{ .Values.pgid | default $.Values.global.pgid }}"
+            - name: TZ
+              value: "{{ .Values.timezone | default $.Values.global.timezone }}"
+          ports:
+            - containerPort: {{ .Values.port }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: movies
+              mountPath: /movies
+            - name: tv
+              mountPath: /tv
+          livenessProbe: {{- toYaml $.Values.global.livenessProbe | nindent 12 }}
+          readinessProbe: {{- toYaml $.Values.global.readinessProbe | nindent 12 }}
+      volumes:
+        - name: config
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Metadata/bazarr
+        - name: movies
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Movies
+        - name: tv
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/TV Shows

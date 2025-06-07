@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      containers:
+        - name: sonarr
+          image: linuxserver/sonarr:4.0.12.2823-ls270
+          env:
+            - name: PUID
+              value: "{{ .Values.puid | default $.Values.global.puid }}"
+            - name: PGID
+              value: "{{ .Values.pgid | default $.Values.global.pgid }}"
+            - name: TZ
+              value: "{{ .Values.timezone | default $.Values.global.timezone }}"
+          ports:
+            - containerPort: {{ .Values.port }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: tv
+              mountPath: /tv
+            - name: downloads
+              mountPath: /downloads
+          livenessProbe: {{- toYaml $.Values.global.livenessProbe | nindent 12 }}
+          readinessProbe: {{- toYaml $.Values.global.readinessProbe | nindent 12 }}
+      volumes:
+        - name: config
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Metadata/sonarr
+        - name: tv
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/TV Shows
+        - name: downloads
+          hostPath:
+            path: /media/{{ .Values.global.mountPoint }}/Media/Downloads/completed

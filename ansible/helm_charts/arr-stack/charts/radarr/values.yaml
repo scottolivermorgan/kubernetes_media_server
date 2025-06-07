@@ -1,0 +1,21 @@
+port: 7878
+
+service:
+  type: NodePort
+  port: 7878
+  targetPort: 7878
+  nodePort: 30900
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 7878
+  initialDelaySeconds: 120
+  timeoutSeconds: 60
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 7878
+  initialDelaySeconds: 120
+  timeoutSeconds: 60
