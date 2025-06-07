@@ -130,3 +130,7 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+command:
+  - ntfy
+  - serve
