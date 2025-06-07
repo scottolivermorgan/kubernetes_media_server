@@ -13,5 +13,17 @@ komga_values:
 audiobookshelf_values:
   service:
     type: NodePort
-    port: 13378
+    port: 80
     nodePort: 3200
+
+nextcloud_values:
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 3400
+
+ntfy_values:
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 3600

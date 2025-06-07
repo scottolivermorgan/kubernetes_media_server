@@ -276,5 +276,16 @@ sudo kubectl get svc -n media
 service ports:
 `kubectl get svc --all-namespaces`
 
+install helm chart:
+`helm install nextcloud . -n media -f values.yaml`
+
+
 updating helm chart and deploying example (must be in helm dir):
 `helm upgrade audiobookshelf . -n media -f values.yaml`
+
+usefull:
+`sudo kubectl get pods --all-namespaces`
+
+
+`sudo kubectl describe pod -n media audiobookshelf-78ff94dcb8-ghbjk`
+
