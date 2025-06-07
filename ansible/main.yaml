@@ -66,11 +66,17 @@
 #  roles:
 #    - nextcloud
 
-- name: Deploy NTFY notification server
+#- name: Deploy NTFY notification server
+#  hosts: masters
+#  become: true
+#  roles:
+#    - ntfy
+
+- name: Deploy ARR stack 
   hosts: masters
   become: true
   roles:
-    - ntfy
+    - arr_stack
 
 #- name: Configure access to kubeconfig locally
 #  hosts: localhost

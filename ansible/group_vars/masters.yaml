@@ -27,3 +27,9 @@ ntfy_values:
     type: NodePort
     port: 80
     nodePort: 3600
+
+arr_stack_values:
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 3600 ####################
